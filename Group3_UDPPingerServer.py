@@ -1,13 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Sep 18 14:05:58 2021
-
-@author: kyrachan
-"""
-
-# UDPPingerServer.py
-# We will need the following modules to generate randomized lost packets
 import random
 from socket import *
 
