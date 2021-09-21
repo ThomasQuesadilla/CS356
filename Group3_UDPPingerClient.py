@@ -1,13 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Sep 18 14:05:58 2021
-
-@author: kyrachan
-"""
-
-# UDPPingerServer.py
-# We will need the following modules to generate randomized lost packets
 import time
 from socket import *
 import numpy as np
@@ -27,11 +17,11 @@ for seqNum in range(1,16):
     # Measure the start time
     startTime = time.time()
     
-    # The server responds
+    # The client sends the message to the server
     clientSocket.sendto(message.encode(), address)
     
     try:
-        # Receive the client packet along with the address it is coming from
+        # Receive the server response
         response, server = clientSocket.recvfrom(1024)
         
         # Measure the end time
@@ -47,7 +37,7 @@ for seqNum in range(1,16):
         # Add RTTs to times array for later calculations
         times.append(float(RTT))
     
-    # The server times out, no response
+    # No response due to timeout
     except timeout:
         print('Request timed out')
 
