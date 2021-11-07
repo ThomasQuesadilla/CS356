@@ -1,4 +1,4 @@
-from socket import *
+rom socket import *
 import os
 import sys
 import struct
@@ -40,9 +40,9 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
  # Fill in start
  # Fetch the ICMP header from the IP packet
         icmpHeader = recPacket[20:28]
-        icmpType, code, mychecksum, packetID, sequence = struct.unpack("bbHHh", icmpHeader)
+        icmpType, icmpCode, icmpChecksum, icmpPacketID, icmpSequence = struct.unpack("bbHHh", icmpHeader)
    
-        if type != 8 and packetID == ID:
+        if type != 8 and icmpPacketID == ID:
             bytesInDouble = struct.calcsize("d")
             timeSent = struct.unpack("d", recPacket[28:28 + bytesInDouble])[0]
             return timeReceived - timeSent
@@ -108,7 +108,7 @@ def ping(host, timeout=1):
          time.sleep(1) # one second return delay
          
 #ping("umass.edu")
-ping("alibaba.com")
+#ping("alibaba.com")
 #ping("bbc.com")
 #ping("unimelb.edu.au")
-#ping("pretoriazoo.org")
+ping("pretoriazoo.org")
