@@ -37,7 +37,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         startedSelect = time.time()
         whatReady = select.select([mySocket], [], [], timeLeft)
         howLongInSelect = (time.time() - startedSelect)
-        if whatReady[0] == []: # Timeout
+        if whatReady[0] == []: # Timeout - if packet is empty
              return "Destination Network Unreachable"
         timeReceived = time.time()
         recPacket, addr = mySocket.recvfrom(1024)
@@ -46,6 +46,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         icmpHeader = recPacket[20:28]
         icmpType, icmpCode, icmpChecksum, icmpPacketID, icmpSequence = struct.unpack("bbHHh", icmpHeader)
 
+        # Decomposition of error codes
         if icmpType != 0:
             if icmpType == 3:
                 if icmpCode == 0:
