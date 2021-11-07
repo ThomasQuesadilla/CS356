@@ -6,6 +6,9 @@ import time
 import select
 
 ICMP_ECHO_REQUEST = 8
+timeRTT = []
+packageSent = 0
+packageReceived = 0;
 
 def checksum(string):
     csum = 0
@@ -28,6 +31,7 @@ def checksum(string):
 
 
 def receiveOnePing(mySocket, ID, timeout, destAddr):
+    global packageReceived
     timeLeft = timeout
     while 1:
         startedSelect = time.time()
@@ -37,12 +41,9 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
              return "Destination Network Unreachable"
         timeReceived = time.time()
         recPacket, addr = mySocket.recvfrom(1024)
-        # Fill in start
-        # Fetch the ICMP header from the IP packet
-        
-        # Set ICMP header to be bytes 20-28 from received packet
+ # Fill in start
+ # Fetch the ICMP header from the IP packet
         icmpHeader = recPacket[20:28]
-        # Unpack the ICMP header and split into each block
         icmpType, icmpCode, icmpChecksum, icmpPacketID, icmpSequence = struct.unpack("bbHHh", icmpHeader)
 
         if icmpType != 0:
@@ -60,22 +61,21 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         if icmpPacketID == ID:
             # Calculate byte size of timestamp data
             bytesInDouble = struct.calcsize("d")
-            # Unpack timestamp for time sent
             timeSent = struct.unpack("d", recPacket[28:28 + bytesInDouble])[0]
-            
-            # Calculate the time delay
+            timeRTT.append(timeReceived - timeSent)
+            packageReceived = packageReceived+1
             return timeReceived - timeSent
 
-        # Calculate if request timed out
         timeLeft = timeLeft - howLongInSelect
        
-        # Time has exceeded limit, request has timed out
         if timeLeft <= 0:
            return "Request timed out."
-
-        # Fill in end
+ # Explain each line
+ # Fill in end
+ 
  
 def sendOnePing(mySocket, destAddr, ID):
+    global packageSent, timeRTT
     # Header is type (8), code (8), checksum (16), id (16), sequence (16)
     myChecksum = 0
     
@@ -98,6 +98,7 @@ def sendOnePing(mySocket, destAddr, ID):
     packet = header + data
     
     mySocket.sendto(packet, (destAddr, 1)) # AF_INET address must be tuple, not str
+    packageSent=packageSent+1
     # Both LISTS and TUPLES consist of a number of objects
     # which can be referenced by their position number within the object.
     
@@ -124,7 +125,17 @@ def ping(host, timeout=1):
      # Send ping requests to a server separated by approximately one second
      while 1:
          delay = doOnePing(dest, timeout)
-         print(delay)
+         print("RTT: ",delay)
+         if (len(timeRTT)>0):
+             print("maxRTT: ", max(timeRTT))
+             print("minRTT: ", min(timeRTT))
+             print("averageRTT: ", float(sum(timeRTT)/len(timeRTT)));
+             print("Package loss rate: ", (packageSent - packageReceived)/packageSent)
+         else:
+             print("maxRTT: ", 0)
+             print("minRTT: ", 0)   
+             print("averageRTT: ", 0)
+             print("average loss rate:", 0)
          time.sleep(1) # one second return delay
          
 #ping("umass.edu")
