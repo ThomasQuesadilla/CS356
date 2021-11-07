@@ -6,9 +6,9 @@ import time
 import select
 
 ICMP_ECHO_REQUEST = 8
-timeRTT = []
-packageSent = 0
-packageReceived = 0;
+timeRTT = [] # list to accumulate RTTs
+packageSent = 0 #counter for number of sent packages
+packageReceived = 0 # counter for number of received packages
 
 def checksum(string):
     csum = 0
@@ -31,7 +31,7 @@ def checksum(string):
 
 
 def receiveOnePing(mySocket, ID, timeout, destAddr):
-    global packageReceived
+    global packageReceived, timeRTT
     timeLeft = timeout
     while 1:
         startedSelect = time.time()
@@ -63,8 +63,8 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
             # Calculate byte size of timestamp data
             bytesInDouble = struct.calcsize("d")
             timeSent = struct.unpack("d", recPacket[28:28 + bytesInDouble])[0]
-            timeRTT.append(timeReceived - timeSent)
-            packageReceived = packageReceived+1
+            timeRTT.append(timeReceived - timeSent) # append RTT time to the list
+            packageReceived = packageReceived+1 #increase number of received packages by 1
             return timeReceived - timeSent
 
         timeLeft = timeLeft - howLongInSelect
@@ -99,7 +99,7 @@ def sendOnePing(mySocket, destAddr, ID):
     packet = header + data
     
     mySocket.sendto(packet, (destAddr, 1)) # AF_INET address must be tuple, not str
-    packageSent=packageSent+1
+    packageSent=packageSent+1 #increase number of sent packages by 1
     # Both LISTS and TUPLES consist of a number of objects
     # which can be referenced by their position number within the object.
     
@@ -128,10 +128,10 @@ def ping(host, timeout=1):
          delay = doOnePing(dest, timeout)
          print("RTT: ",delay)
          if (len(timeRTT)>0):
-             print("maxRTT: ", max(timeRTT))
-             print("minRTT: ", min(timeRTT))
-             print("averageRTT: ", float(sum(timeRTT)/len(timeRTT)));
-             print("Package loss rate: ", (packageSent - packageReceived)/packageSent)
+             print("maxRTT: ", max(timeRTT)) #max of the list
+             print("minRTT: ", min(timeRTT)) #min of the list
+             print("averageRTT: ", float(sum(timeRTT)/len(timeRTT))); #average of all RTTs
+             print("Package loss rate: ", (packageSent - packageReceived)/packageSent) #average rate of package loss
          else:
              print("maxRTT: ", 0)
              print("minRTT: ", 0)   
