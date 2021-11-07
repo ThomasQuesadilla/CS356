@@ -1,4 +1,4 @@
-rom socket import *
+from socket import *
 import os
 import sys
 import struct
@@ -34,7 +34,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         whatReady = select.select([mySocket], [], [], timeLeft)
         howLongInSelect = (time.time() - startedSelect)
         if whatReady[0] == []: # Timeout
-             return "Request timed out."
+             return "Destination Network Unreachable"
         timeReceived = time.time()
         recPacket, addr = mySocket.recvfrom(1024)
         # Fill in start
@@ -44,9 +44,20 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         icmpHeader = recPacket[20:28]
         # Unpack the ICMP header and split into each block
         icmpType, icmpCode, icmpChecksum, icmpPacketID, icmpSequence = struct.unpack("bbHHh", icmpHeader)
-   
+
+        if icmpType != 0:
+            if icmpType == 3:
+                if icmpCode == 0:
+                    return "Destination Network Unreachable"
+                elif icmpCode == 1:
+                    return "Destination Host Unreachable"
+                elif icmpCode == 2:
+                    return "Destination Protocol Unreachable"
+            else:
+                return "Other Errors"
+
         # If correct packet is received
-        if type != 8 and icmpPacketID == ID:
+        if icmpPacketID == ID:
             # Calculate byte size of timestamp data
             bytesInDouble = struct.calcsize("d")
             # Unpack timestamp for time sent
@@ -107,7 +118,7 @@ def doOnePing(destAddr, timeout):
 def ping(host, timeout=1):
  # timeout=1 means: If one second goes by without a reply from the server,
  # the client assumes that either the client's ping or the server's pong is lost
-     dest = gethostbyname(host)
+     dest = "128.119.8.148"
      print("Pinging " + dest + " using Python:")
      print("")
      # Send ping requests to a server separated by approximately one second
